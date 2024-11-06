@@ -1,0 +1,53 @@
+import React, { useState } from 'react';
+import { Button } from "/components/ui/button"
+import { Card, CardContent } from "/components/ui/card"
+import { Upload } from "lucide-react"
+const detectDeepfake = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await fetch('/api/detect-deepfake', {
+    method: 'POST',
+    body: formData,
+  });
+  const result = await response.json();
+  return result.isDeepfake;
+};
+export default function DeepfakeDetection() {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isDeepfake, setIsDeepfake] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+  const handleDetect = async () => {
+    setLoading(true);
+    const result = await detectDeepfake(selectedFile);
+    setIsDeepfake(result);
+    setLoading(false);
+  };
+  return (
+    <div className="flex flex-col items-center justify-center h-screen">
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h2 className="text-3xl font-bold tracking-tighter">Deepfake Detection</h2>
+          <p className="text-gray-500 dark:text-gray-400">Upload a picture, audio, or video to detect if it's created by deepfake.</p>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          {selectedFile && (
+            <Button onClick={handleDetect} disabled={loading}>
+              {loading ? 'Detecting...' : 'Detect Deepfake'}
+            </Button>
+          )}
+          {isDeepfake !== null && (
+            <p className="text-lg font-bold">
+              {isDeepfake ? 'This file is likely created by deepfake.' : 'This file is likely not created by deepfake.'}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
